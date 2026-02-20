@@ -1,0 +1,252 @@
+---
+title: "Introduction to SegSwarmEP"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SegSwarmEP}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  fig.width  = 7,
+  fig.height = 4
+)
+```
+
+## Overview
+
+**SegSwarmEP** is an R package that implements a swarm-based optimization
+heuristic for redistricting school districts with the goal of reducing racial
+and socioeconomic segregation.  It was developed as part of doctoral research
+examining whether voluntary *regionalization* of New Jersey school districts
+could reduce between-district segregation, and is designed so that
+practitioners and researchers in any US state (or beyond) can apply the same
+framework to their own data.
+
+The package provides:
+
+* **Segregation indices** — Exposure-Proportion (EP), dissimilarity, isolation,
+  and Theil H.
+* **SegSwarmEP algorithm** — A simulated-annealing heuristic that minimises the
+  population-weighted EP index by iteratively reassigning districts to regional
+  groupings while preserving geographic contiguity.
+* **Utility functions** — Adjacency-matrix construction from coordinates,
+  initial region generation, and plan evaluation.
+* **Visualisation** — Convergence trace plots, per-region bar charts, and
+  (optionally) choropleth maps when the **sf** package is available.
+
+---
+
+## Installation
+
+```r
+# From GitHub (development version):
+# install.packages("remotes")
+remotes::install_github("wootenjp/SegSwarmEP-R-")
+```
+
+---
+
+## Quick-start example
+
+### 1. Load the package and bundled demo data
+
+```{r setup}
+library(SegSwarmEP)
+data(nj_districts)
+head(nj_districts)
+```
+
+The `nj_districts` dataset contains 60 simulated school districts representing
+the demographic and geographic diversity of New Jersey's 21 counties.  For real
+analyses, replace this with data from the [NJ Department of
+Education](https://www.nj.gov/education/data/) or
+[NCES](https://nces.ed.gov/).
+
+### 2. Examine baseline segregation
+
+Before optimising, it is useful to understand the current level of segregation
+across the full study area:
+
+```{r baseline}
+segregation_summary(nj_districts, group_a = "white", group_b = "nonwhite")
+```
+
+The **EP index** (`ep`) measures the average proportion of non-white students
+in the school of a typical white student.  The **dissimilarity index** captures
+the proportion of one group that would need to relocate to achieve an even
+distribution.
+
+### 3. Build an adjacency matrix
+
+The optimization algorithm needs to know which districts share a border, so
+that it only considers *contiguous* merges.  If you have a formal spatial
+adjacency matrix (e.g., from **spdep**), you can supply it directly.
+Otherwise, `build_adjacency()` constructs one from centroid coordinates using a
+distance threshold:
+
+```{r adjacency}
+adj <- build_adjacency(nj_districts,
+                       id_col  = "district_id",
+                       lat_col = "lat",
+                       lon_col = "lon")
+# Preview the first 5×5 block
+adj[1:5, 1:5]
+```
+
+### 4. Create an initial region assignment
+
+We start with 21 regions — one per NJ county — using a greedy growing
+algorithm seeded by the adjacency structure:
+
+```{r init-regions}
+init_regions <- create_regions(nj_districts,
+                               n_regions = 21,
+                               id_col    = "district_id",
+                               adjacency = adj,
+                               seed      = 2024)
+table(init_regions)
+```
+
+### 5. Run the SegSwarmEP optimization
+
+```{r swarm, eval=FALSE}
+result <- seg_swarm(
+  enrollment   = nj_districts,
+  adjacency    = adj,
+  region_id    = init_regions,
+  group_a      = "white",
+  group_b      = "nonwhite",
+  n_iter       = 5000,
+  cooling_rate = 0.995,
+  temp_init    = 0.10,
+  seed         = 42,
+  verbose      = TRUE
+)
+```
+
+```{r swarm-fast, echo=FALSE}
+# Use fewer iterations for the vignette build
+result <- seg_swarm(
+  enrollment   = nj_districts,
+  adjacency    = adj,
+  region_id    = init_regions,
+  group_a      = "white",
+  group_b      = "nonwhite",
+  n_iter       = 500,
+  cooling_rate = 0.995,
+  temp_init    = 0.10,
+  seed         = 42
+)
+```
+
+### 6. Inspect the results
+
+```{r results}
+print(result)
+```
+
+```{r summary}
+summary(result)
+```
+
+### 7. Visualise convergence
+
+```{r trace-plot}
+plot_ep_trace(result)
+```
+
+The dashed grey line shows the initial EP value; the dashed red line shows the
+final (optimised) EP value.
+
+### 8. Compare per-region segregation
+
+```{r bar-plot}
+plot_region_bars(result)
+```
+
+---
+
+## Applying SegSwarmEP to your own state
+
+To use SegSwarmEP with data from another state:
+
+1. **Prepare enrollment data** — Create a data frame with one row per district
+   and (at minimum) columns for the two demographic groups you wish to compare,
+   plus latitude/longitude centroids.
+
+2. **Specify the number of regions** — This corresponds to the desired number
+   of regional school authority areas.  In NJ's case, 21 (one per county) is a
+   natural choice; your state may have different regional structures.
+
+3. **Run the optimization** — Call `seg_swarm()` with your data, adjacency
+   matrix, and initial assignment.
+
+4. **Evaluate results** — Use `evaluate_plan()`, `print()`, and `summary()` to
+   assess the proposed redistricting.
+
+```r
+# Schematic example for another state
+my_data  <- read.csv("my_state_districts.csv")
+my_adj   <- build_adjacency(my_data, id_col = "lea_code",
+                             lat_col = "latitude", lon_col = "longitude")
+my_init  <- create_regions(my_data, n_regions = 10, adjacency = my_adj)
+
+my_result <- seg_swarm(
+  enrollment = my_data,
+  adjacency  = my_adj,
+  region_id  = my_init,
+  group_a    = "white_students",
+  group_b    = "students_of_color",
+  n_iter     = 10000
+)
+summary(my_result)
+```
+
+---
+
+## Methodological notes
+
+### The Exposure-Proportion (EP) index
+
+The EP index $EP_{a \to b}$ measures the average proportion of group $b$ in the
+school environment of a member of group $a$:
+
+$$EP_{a \to b} = \sum_i \frac{a_i}{A} \cdot \frac{b_i}{n_i}$$
+
+where $a_i$ and $b_i$ are the counts of groups $a$ and $b$ in district $i$,
+$A = \sum_i a_i$ is the total count of group $a$, and $n_i$ is the total
+enrollment in district $i$.  The **isolation index** is the special case
+$EP_{a \to a}$.
+
+### Objective function
+
+The optimization minimises the *population-weighted* EP index across all
+regions:
+
+$$\text{Objective} = \sum_r \frac{A_r}{A} \cdot EP^{(r)}_{a \to b}$$
+
+where the sum is over regions $r$ and $A_r$ is the count of group $a$ in
+region $r$.
+
+### Simulated annealing schedule
+
+At each iteration a district is chosen at random and proposed for reassignment
+to an adjacent region.  The move is accepted if it reduces the objective, or
+with probability $\exp(-\Delta / T)$ otherwise, where $\Delta$ is the change in
+the objective and $T$ is the current temperature.  The temperature decreases
+geometrically: $T_{t+1} = \alpha \cdot T_t$ with $\alpha$ = `cooling_rate`.
+Setting `cooling_rate = 0` gives a pure greedy hill-climbing algorithm.
+
+---
+
+## References
+
+* Duncan, O. D., & Duncan, B. (1955). A methodological analysis of segregation
+  indexes. *American Sociological Review*, 20(2), 210–217.
+* Massey, D. S., & Denton, N. A. (1988). The dimensions of residential
+  segregation. *Social Forces*, 67(2), 281–315.
+* Theil, H. (1972). *Statistical Decomposition Analysis*. North-Holland.

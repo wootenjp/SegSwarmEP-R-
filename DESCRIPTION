@@ -1,0 +1,39 @@
+Package: SegSwarmEP
+Type: Package
+Title: Swarm-Based Redistricting Optimization for School Desegregation
+Version: 0.1.0
+Authors@R: c(
+    person("J. P.", "Wooten", email = "jwooten@example.com",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0000-0000-0000")))
+Description: Implements a swarm-based optimization heuristic (SegSwarmEP) for
+    redistricting school districts with the goal of reducing racial and
+    socioeconomic segregation. The algorithm minimizes the Exposure-Proportion
+    (EP) segregation index by iteratively reassigning school districts to
+    regional groupings, subject to geographic contiguity constraints.
+    Developed as part of a dissertation examining the desegregation of
+    New Jersey school districts through voluntary regionalization, the package
+    is designed so that stakeholders in any state can evaluate proposals for
+    consolidating or regionalizing school districts.
+License: MIT + file LICENSE
+URL: https://github.com/wootenjp/SegSwarmEP-R-
+BugReports: https://github.com/wootenjp/SegSwarmEP-R-/issues
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.0.0)
+Imports:
+    stats,
+    utils,
+    grDevices,
+    graphics
+Suggests:
+    ggplot2,
+    sf,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

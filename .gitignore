@@ -1,0 +1,29 @@
+# R build artifacts
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+*.o
+*.so
+*.dll
+src/*.o
+src/*.so
+
+# Build and check directories
+/doc/
+/Meta/
+/inst/doc/
+/.Rproj.user/
+/check/
+*.tar.gz
+*.Rcheck/
+
+# vignette cache
+vignettes/*.html
+vignettes/cache/
+vignettes/figure/
+vignettes/*_cache/
+
+# Misc
+.DS_Store
+Thumbs.db
