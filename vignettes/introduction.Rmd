@@ -1,0 +1,154 @@
+---
+title: "Introduction to SegSwarmEP"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SegSwarmEP}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE   # set to TRUE once nj_districts data is bundled
+)
+library(SegSwarmEP)
+```
+
+## Overview
+
+`SegSwarmEP` implements an **Ant Colony Optimization (ACO)** heuristic for
+re-drawing school district boundaries to reduce racial and demographic
+segregation. Starting from a set of individual school districts (or local
+education agencies) represented as spatial polygons, the algorithm proposes
+consolidated regions ("super-districts") that:
+
+- Minimise segregation as measured by **Theil's H** information index.
+- Maintain **geographic contiguity** (each region must be a connected area).
+- Optimise **compactness** (Polsby-Popper score).
+- Respect an optional **maximum enrollment cap** per region.
+
+The package is designed to work with any state or metropolitan area — not
+just New Jersey — as long as you supply an `sf` spatial data frame of
+school districts with demographic enrollment data.
+
+---
+
+## A quick-start example (New Jersey, 21 regions)
+
+### Step 1 — Load and prepare the data
+
+```{r}
+library(SegSwarmEP)
+library(sf)
+
+# Load the bundled NJ example dataset.
+# nj_districts is an sf object with columns:
+#   district, county, white, nonwhite, total, geometry
+data(nj_districts)
+
+# prepare_districts() reprojects the data to UTM Zone 18N (EPSG:32618),
+# computes centroids, builds the adjacency matrix, and creates an igraph graph.
+# Use the EPSG code for the UTM zone covering your study area.
+prep <- prepare_districts(nj_districts, crs = 32618)
+
+str(prep, max.level = 1)
+# List of 4:
+#  $ sf_data      : sf data.frame [n × columns + center_x + center_y]
+#  $ adj_matrix   : int [n × n]
+#  $ graph        : igraph object
+#  $ search_radius: num
+```
+
+### Step 2 — Run the ACO algorithm
+
+```{r}
+set.seed(42)
+
+result <- aco_districting(
+  sf_data           = prep$sf_data,
+  adj_matrix        = prep$adj_matrix,
+  graph             = prep$graph,
+  num_districts     = 21,          # target number of consolidated regions
+  group_a           = "white",     # column name for group A enrollment
+  group_b           = "nonwhite",  # column name for group B enrollment
+  total_col         = "total",
+  id_col            = "district",
+  county_col        = "county",
+  max_district_size = 124000,      # max students per consolidated district
+  num_ants          = 400,
+  num_iterations    = 320,
+  verbose           = TRUE
+)
+```
+
+The algorithm prints a progress line for each iteration showing the best
+score and Theil's H for the best ant found so far.
+
+### Step 3 — Inspect the results
+
+```{r}
+# Attach the best assignment to the sf object
+prep$sf_data$cluster <- result$best_assignment
+
+# Demographic summary per cluster
+summarise_clusters(prep$sf_data, group_a = "white", group_b = "nonwhite")
+
+# Geographic contiguity check (all TRUE = all contiguous)
+check_contiguity(prep$sf_data, prep$adj_matrix)
+```
+
+### Step 4 — Visualise
+
+```{r, fig.width=7, fig.height=5}
+# Map of cluster assignments
+plot_aco_map(prep$sf_data, title = "NJ 21-Region Redistricting")
+
+# Convergence plots
+plot_score_history(result)
+plot_h_history(result)
+```
+
+---
+
+## Using your own data
+
+Any `sf` object of school district polygons will work. The minimum
+requirements are:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| geometry | sfc_POLYGON / sfc_MULTIPOLYGON | District polygon(s) |
+| *group_a* | numeric | Enrollment count for demographic group A |
+| *group_b* | numeric | Enrollment count for demographic group B |
+| *total* | numeric | Total enrollment (can be named anything) |
+
+**CRS**: Supply the EPSG code of the UTM zone covering your state. A quick
+reference:
+
+| Region | UTM Zone | EPSG |
+|--------|----------|------|
+| NJ / Mid-Atlantic | 18N | 32618 |
+| Southeast US | 17N | 32617 |
+| Midwest | 15N / 16N | 32615 / 32616 |
+| West Coast | 10N / 11N | 32610 / 32611 |
+
+**Adjacency**: `prepare_districts()` uses `sf::st_touches()` by default,
+which marks two districts as adjacent if they share any boundary. For
+datasets where some neighbouring districts only *nearly* touch (common with
+imprecise data), use `adjacency_method = "distance"` together with a
+`distance_threshold` in metres.
+
+---
+
+## Parameter guide
+
+| Parameter | Recommendation |
+|-----------|---------------|
+| `num_districts` | Target number of consolidated regions. For NJ (595 districts → 21 counties) values of 7–25 are typical. |
+| `num_ants` | 200–600. More ants = better exploration but longer runtime. |
+| `num_iterations` | 200–500. Watch `plot_score_history()` for convergence. |
+| `demographic_scale` | Controls how strongly segregation reduction is rewarded. Raise if results are compact but segregated. |
+| `compactness_scale` | Controls how strongly geographic compactness is rewarded. |
+| `max_district_size` | Set to the maximum enrollment you consider administratively workable. Use `Inf` to disable. |

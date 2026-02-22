@@ -1,0 +1,28 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Built package files
+*.tar.gz
+*.tgz
+
+# R CMD check artifacts
+/*.Rcheck/
+
+# knitr / vignette cache
+vignettes/*.html
+vignettes/*.pdf
+vignettes/cache/
+vignettes/figure/
+
+# roxygen2
+# (NAMESPACE and man/ are tracked — they are generated but should be committed)
+
+# Large workspace files (keep the original scripts; exclude big RDA outputs)
+ACO.21.run*.rda
+
+# OS
+.DS_Store
+Thumbs.db
