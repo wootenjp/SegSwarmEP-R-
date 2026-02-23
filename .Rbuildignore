@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.github$
+^ACO_.*\.rda$
+^EAS\..*\.r$
+^SegSwarmEP_script\.r$
+^data-raw$
+^README\.md$
