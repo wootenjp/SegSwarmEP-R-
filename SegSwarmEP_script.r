@@ -38,9 +38,9 @@ if (workspace_choice == "7") {
 
 # Parameters (Change as needed)
 max_district_size <- 124000 
-num_ants <- 200
+num_ants <- 80
 num_districts <- 7 
-num_iterations <- 240
+num_iterations <- 120
 demographic_scale <- 45 # was 15
 compactness_scale <- 120 # was 30
 penalty_contiguity <- -30 # was -12

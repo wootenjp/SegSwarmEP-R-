@@ -101,4 +101,3 @@ package data.
 ## License
 
 MIT © J. P. Wooten
-install.packages("languageserver", repos="https://cran.r-project.org/", lib="~/R/library")
