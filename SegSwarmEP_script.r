@@ -22,14 +22,25 @@ install_if_missing(required_packages)
 lapply(required_packages, library, character.only = TRUE)
 
 # Load Data
-#load("ACO_7named_workspace.rda") 
-load("ACO_21_workspace.rda") 
+
+# Choose which workspace to load: "7" or "21"
+workspace_choice <- "7" # Change to "21" for the larger example
+
+if (workspace_choice == "7") {
+  load("ACO_7_workspace.rda")
+  num_districts <- 7
+} else if (workspace_choice == "21") {
+  load("ACO_21_workspace.rda")
+  num_districts <- 21
+} else {
+  stop("Invalid workspace_choice. Use '7' or '21'.")
+}
 
 # Parameters (Change as needed)
 max_district_size <- 124000 
-num_ants <- 400
-num_districts <- 21 
-num_iterations <- 320
+num_ants <- 200
+num_districts <- 7 
+num_iterations <- 240
 demographic_scale <- 45 # was 15
 compactness_scale <- 120 # was 30
 penalty_contiguity <- -30 # was -12

@@ -39,7 +39,7 @@ result <- aco_districting(
   sf_data           = prep$sf_data,
   adj_matrix        = prep$adj_matrix,
   graph             = prep$graph,
-  num_districts     = 21,
+  num_districts     = 7,
   group_a           = "white",     # column of group A enrollment counts
   group_b           = "nonwhite",  # column of group B enrollment counts
   total_col         = "total",
@@ -101,3 +101,4 @@ package data.
 ## License
 
 MIT © J. P. Wooten
+install.packages("languageserver", repos="https://cran.r-project.org/", lib="~/R/library")
