@@ -17,3 +17,17 @@ compact (circle-like) shape.
 \description{
 Calculate the Polsby-Popper compactness score of a district geometry
 }
+\examples{
+\dontrun{
+# Example: calculate compactness of a merged district
+library(sf)
+download_example_data("ACO_7")
+load("ACO_7_workspace.rda")
+
+# Merge first 10 districts into one region
+merged_geom <- st_union(sf.dist[1:10, ])
+compactness <- calculate_polsby_popper(merged_geom)
+cat("Polsby-Popper score:", compactness, "\n")
+}
+
+}

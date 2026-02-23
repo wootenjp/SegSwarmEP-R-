@@ -25,3 +25,12 @@ A \code{data.frame} with one row per cluster and columns:
 Returns a data frame with total and percentage enrollment for each
 demographic group per consolidated cluster.
 }
+\examples{
+\dontrun{
+# After running aco_districting:
+sf.dist$cluster <- result$best_assignment
+summary <- summarise_clusters(sf.dist, group_a = "wa", group_b = "hb")
+print(summary)
+}
+
+}

@@ -18,3 +18,14 @@ Named logical vector (one element per cluster).
 Returns a named logical vector indicating whether each cluster in
 \code{sf_data$cluster} forms a geographically contiguous region.
 }
+\examples{
+\dontrun{
+# After running aco_districting:
+sf.dist$cluster <- result$best_assignment
+contiguity_check <- check_contiguity(sf.dist, adj_matrix)
+print(contiguity_check)
+# Check if all are contiguous
+all(contiguity_check)
+}
+
+}

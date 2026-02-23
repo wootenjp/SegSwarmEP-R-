@@ -113,6 +113,14 @@ plot_aco_map <- function(sf_data,
 #'   `cluster`, `n_districts`, `total`, `group_a`, `group_b`,
 #'   `pct_group_a`, `pct_group_b`.
 #'
+#' @examples
+#' \dontrun{
+#' # After running aco_districting:
+#' sf.dist$cluster <- result$best_assignment
+#' summary <- summarise_clusters(sf.dist, group_a = "wa", group_b = "hb")
+#' print(summary)
+#' }
+#'
 #' @export
 summarise_clusters <- function(sf_data, group_a, group_b, total_col = "total") {
   if (!"cluster" %in% colnames(sf_data)) {
@@ -149,6 +157,16 @@ summarise_clusters <- function(sf_data, group_a, group_b, total_col = "total") {
 #' @param adj_matrix Adjacency matrix from [prepare_districts()].
 #'
 #' @return Named logical vector (one element per cluster).
+#'
+#' @examples
+#' \dontrun{
+#' # After running aco_districting:
+#' sf.dist$cluster <- result$best_assignment
+#' contiguity_check <- check_contiguity(sf.dist, adj_matrix)
+#' print(contiguity_check)
+#' # Check if all are contiguous
+#' all(contiguity_check)
+#' }
 #'
 #' @export
 check_contiguity <- function(sf_data, adj_matrix) {

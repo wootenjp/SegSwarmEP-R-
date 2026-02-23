@@ -66,3 +66,31 @@ Evaluates a candidate assignment vector using three components:
 geographic contiguity (penalty/bonus), compactness (Polsby-Popper), and
 demographic segregation (Theil's H) across the proposed districts.
 }
+\examples{
+\dontrun{
+# Example: score a random assignment
+download_example_data("ACO_7")
+load("ACO_7_workspace.rda")
+
+# Create a random assignment
+n <- nrow(sf.dist)
+random_assignment <- sample(1:7, n, replace = TRUE)
+
+score <- calculate_score(
+  assignment         = random_assignment,
+  adj_matrix         = adj_matrix,
+  sf_data            = sf.dist,
+  group_a            = "wa",
+  group_b            = "hb",
+  total_col          = "total",
+  penalty_contiguity = -30,
+  bonus_contiguity   = 60,
+  compactness_scale  = 120,
+  demographic_scale  = 45,
+  num_districts      = 7,
+  max_district_size  = 124000
+)
+cat("Random assignment score:", score, "\n")
+}
+
+}
