@@ -17,11 +17,11 @@ library(sf)
 # ------------------------------------------------------------------
 # 1. Load from the original NJ workspace
 # ------------------------------------------------------------------
-message("Loading ACO_21_workspace.rda ...")
-load("ACO_21_workspace.rda")   # brings in sf.dist, adj_matrix, graph, etc.
+message("Loading ACO_7_workspace.rda ...")
+load("ACO_7_workspace.rda")   # brings in sf.dist, adj_matrix, graph, etc.
 
 if (!exists("sf.dist") || !inherits(sf.dist, "sf")) {
-  stop("Could not find an sf object named 'sf.dist' in ACO_21_workspace.rda")
+  stop("Could not find an sf object named 'sf.dist' in ACO_7_workspace.rda")
 }
 
 # ------------------------------------------------------------------
