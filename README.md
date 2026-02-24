@@ -1,6 +1,6 @@
 # SegSwarmEP
 
-An R package implementing Ant Colony Optimization (ACO) for school district
+An R package implementing Ant Colony Optimization (ACO), with elite (E) and parallel (P) ants, for school district
 redistricting to reduce racial and demographic segregation.
 
 ## Overview
