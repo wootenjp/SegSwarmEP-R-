@@ -136,4 +136,5 @@ summarise_clusters(prep$sf_data, group_a = "white", group_b = "nonwhite")
 
 ## License
 
-MIT © J. P. Wooten
+This work is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International, accessible at https://creativecommons.org/licenses/by-nc-sa/4.0/
+© J. P. Wooten
