@@ -115,8 +115,8 @@ result <- aco_districting(
   group_b           = "nonwhite",     # your column name for demographic group B
   total_col         = "total",        # your total enrollment column
   max_district_size = 124000,         # optional enrollment cap per district
-  num_ants          = 400,            # more ants = better quality (slower)
-  num_iterations    = 320             # more iterations = better convergence
+  num_ants          = 320,            # more ants = better quality (slower)
+  num_iterations    = 400             # more iterations = better convergence
 )
 
 # 4. Analyze results
